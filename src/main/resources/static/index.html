@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fila de Espera</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fadeIn {
+            animation: fadeIn 1s;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Fila de Espera</h2>
+
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Atendido</th>
+        </tr>
+        </thead>
+        <tbody id="tabelaClientes">
+        <!-- A tabela será preenchida dinamicamente com os dados da fila -->
+        </tbody>
+    </table>
+</div>
+
+<!-- ... restante do seu código ... -->
+
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+<script>
+    var socket = new SockJS('/ws');
+    var stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        stompClient.subscribe('/topic/fila', function (mensagem) {
+            atualizarPainel(JSON.parse(mensagem.body));
+        });
+
+        // Solicitar a lista inicial ao estabelecer a conexão
+        stompClient.send("/app/inicializar", {}, "");
+    });
+
+    function atualizarPainel(fila) {
+        var tabelaClientes = $("#tabelaClientes");
+        tabelaClientes.empty();
+
+        for (var i = 0; i < fila.length; i++) {
+            var cliente = fila[i];
+            var linha = "<tr>";
+            linha += "<td>" + cliente.nome + "</td>";
+            linha += "<td>" + (cliente.atendido ? "Sim" : "Não") + "</td>";
+            linha += "</tr>";
+
+            tabelaClientes.append(linha);
+        }
+    }
+
+    function atualizarPainel(fila) {
+    var tabelaClientes = $("#tabelaClientes");
+    tabelaClientes.empty();
+
+    for (var i = 0; i < fila.length; i++) {
+        var cliente = fila[i];
+        var linha = "<tr class='fadeIn'>";
+        linha += "<td>" + cliente.nome + "</td>";
+        linha += "<td>" + (cliente.atendido ? "Sim" : "Não") + "</td>";
+        linha += "</tr>";
+
+        tabelaClientes.append(linha);
+    }
+
+    // Remover a classe de animação após a animação
+    setTimeout(function () {
+        $(".fadeIn").removeClass("fadeIn");
+    }, 1000);
+}
+
+</script>
+
+</body>
+</html>
